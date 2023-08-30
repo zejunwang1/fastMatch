@@ -139,13 +139,24 @@ class FastMatch : public trie {
     while (getline(in, key))
       if (key.size())
         _key.emplace_back(key);
-
-    build(_key.size(), _key, 0);
+    _size = _key.size();
+    build(_size, _key, 0);
   }
   FastMatch(const vector<string>& key) : _key(key) {
-    build(_key.size(), _key, 0);
+    _size = _key.size();
+    build(_size, _key, 0);
   }
   
+  size_t size() const { return _size; }
+  
+  void insert(const string& key) {
+    int index = exactMatchSearch<int>(key.c_str(), key.size());
+    if (index < 0) {
+      update(key.c_str(), key.size(), _size++);
+      _key.emplace_back(key);
+    } 
+  }
+
   int hit(const string& text) const {
     if (text.empty())
       return -1;
@@ -394,6 +405,7 @@ class FastMatch : public trie {
   }
 
   private:
+  size_t _size = 0;
   vector<string> _key;
 };
 
