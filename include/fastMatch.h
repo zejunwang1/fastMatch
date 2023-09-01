@@ -156,7 +156,17 @@ class FastMatch : public trie {
       _key.emplace_back(key);
     } 
   }
-
+  
+  string getKey(int id) const {
+    assert(id >= 0);
+    assert(id < _size);
+    return _key[id];
+  }
+  
+  int getValue(const string& key) const {
+    return exactMatchSearch<int>(key.c_str(), key.size());
+  }
+  
   int hit(const string& text) const {
     if (text.empty())
       return -1;
@@ -333,12 +343,13 @@ class FastMatch : public trie {
         continue;
       }
       last = cur;
-      ++cur;
-      while (cur < len && ((str[cur] & 0xC0) == 0x80 || 
-            (str[cur] >= '0' && str[cur] <= '9') ||
-            (str[cur] >= 'a' && str[cur] <= 'z') ||
-            (str[cur] >= 'A' && str[cur] <= 'Z')))
+      while (cur < len && isascii(str[cur]) && !isspace(str[cur]))
         ++cur;
+      if (last == cur) {
+        ++cur;
+        while (cur < len && (str[cur] & 0xC0) == 0x80)
+          ++cur;
+      }
       res.emplace_back(text.substr(last, cur - last));
     }
     return res;
@@ -361,12 +372,13 @@ class FastMatch : public trie {
         continue;
       }
       last = cur;
-      ++cur;
-      while (cur < len && ((str[cur] & 0xC0) == 0x80 ||
-            (str[cur] >= '0' && str[cur] <= '9') ||
-            (str[cur] >= 'a' && str[cur] <= 'z') ||
-            (str[cur] >= 'A' && str[cur] <= 'Z')))
+      while (cur < len && isascii(str[cur]) && !isspace(str[cur]))
         ++cur;
+      if (last == cur) {
+        ++cur;
+        while (cur < len && (str[cur] & 0xC0) == 0x80)
+          ++cur;
+      }
       res.append(str + last, cur - last);
       res.push_back(' ');
     }
