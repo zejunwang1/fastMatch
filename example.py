@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from fast_match import match, FastMatch
+from fast_match import FastMatch
 
 #fmatch = FastMatch("data/disease.txt")
 fmatch = FastMatch()
@@ -10,11 +10,6 @@ fmatch.insert("大三阳")
 fmatch.insert("抗病毒治疗")
 
 text = "乙肝大三阳抗病毒治疗需要多长时间？"
-
-pattern = "抗病毒治疗"
-pos = match(text, pattern)
-if pos >= 0:
-    print("Find pattern at position: ", pos)
 
 result = fmatch.parse(text)
 print("\nMulti-pattern matching result:")

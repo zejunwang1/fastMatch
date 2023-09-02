@@ -142,16 +142,14 @@ Alternatively,
    cd fastMatch
    python setup.py install
 
-.. _single-text-1:
-
-Single text
-~~~~~~~~~~~
+Multi-pattern Matching
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
    # coding=utf-8
 
-   from fast_match import match, FastMatch
+   from fast_match import FastMatch
 
    #fmatch = FastMatch("data/disease.txt")
    fmatch = FastMatch()
@@ -161,11 +159,6 @@ Single text
    fmatch.insert("抗病毒治疗")
 
    text = "乙肝大三阳抗病毒治疗需要多长时间？"
-
-   pattern = "抗病毒治疗"
-   pos = match(text, pattern)
-   if pos >= 0:
-       print("Find pattern at position: ", pos)
 
    result = fmatch.parse(text)
    print("\nMulti-pattern matching result:")
@@ -178,13 +171,11 @@ Single text
 
 .. code:: context
 
-   Find pattern at position:  5
-
    Multi-pattern matching result:
    ('乙肝', 0)
-   ('乙肝大三阳', 5)
-   ('大三阳', 6)
-   ('抗病毒治疗', 15)
+   ('乙肝大三阳', 0)
+   ('大三阳', 2)
+   ('抗病毒治疗', 5)
 
    Maximum forward matching word segmentation result:
    SEG[乙肝大三阳, 抗病毒治疗, 需, 要, 多, 长, 时, 间, ？]
