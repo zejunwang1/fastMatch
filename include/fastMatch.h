@@ -229,7 +229,7 @@ class FastMatch : public trie {
       cur += get_num_bytes_of_utf8_char(str + cur, pos - cur);
       loc += 1;
     }
-    while (cur == pos && index < res.size()) {
+    while (index < res.size()) {
       res[index].second = loc;
       ++index;
     }
