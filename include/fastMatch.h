@@ -28,6 +28,7 @@
 typedef cedar::da<int> trie;
 
 using namespace std;
+using width_type = uint_fast8_t;
 
 #if __cplusplus >= 201703L
 inline int match(string_view text, string_view pattern) {
@@ -77,6 +78,14 @@ inline int match(const string& text, const string& pattern) {
 #endif
 }
 #endif
+
+inline width_type get_num_bytes_of_utf8_char(const char* str, int len) {
+  int cur = 1;
+  width_type num_bytes = 1;
+  while (cur < len && (str[cur++] & 0xC0) == 0x80)
+    num_bytes++;
+  return num_bytes;
+}
 
 inline void RunMultiThread(function<void(size_t, size_t)> func, size_t n, int num_threads) {
   vector<thread> threads;
@@ -204,6 +213,25 @@ class FastMatch : public trie {
       ++cur;
       while (cur < len && (str[cur] & 0xC0) == 0x80)
         ++cur;
+    }
+    return res;
+  }
+  
+  vector<pair<string, int>> parseBind(const string& text) const {
+    auto res = parse(text);
+    int cur = 0, index = 0, loc = 0, pos = res.back().second;
+    const char* str = text.c_str();
+    while (cur < pos) {
+      while (cur == res[index].second) {
+        res[index].second = loc;
+        ++index;
+      }
+      cur += get_num_bytes_of_utf8_char(str + cur, pos - cur);
+      loc += 1;
+    }
+    while (cur == pos && index < res.size()) {
+      res[index].second = loc;
+      ++index;
     }
     return res;
   }
