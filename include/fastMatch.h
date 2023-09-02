@@ -149,18 +149,24 @@ class FastMatch : public trie {
   
   size_t size() const { return _size; }
   
-  void insert(const string& key) {
+  int insert(const string& key) {
     int index = exactMatchSearch<int>(key.c_str(), key.size());
     if (index < 0) {
       update(key.c_str(), key.size(), _size++);
       _key.emplace_back(key);
-    } 
+      return _size - 1;
+    }
+    return index;
+  }
+  
+  int remove(const string& key) {
+    return erase(key.c_str(), key.size());
   }
   
   string getKey(int id) const {
-    assert(id >= 0);
-    assert(id < _size);
-    return _key[id];
+    if (id >= 0 && id < _size)
+      return _key[id];
+    return "";
   }
   
   int getValue(const string& key) const {
