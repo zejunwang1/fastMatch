@@ -12,7 +12,7 @@ fastMatch is a c++ library for large-scale exact string matching, mainly solving
 
 - maximum forward matching word segmentation
 
-This library is essentially header-only, and we provide an executable program `fastMatch` for large-scale matching.
+This library is essentially **header-only**, and we provide an executable program `fastMatch` for large-scale matching.
 
 ## Usage
 
