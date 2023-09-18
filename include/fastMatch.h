@@ -107,7 +107,7 @@ inline void SingleMatch(const vector<string>& text, const string& pattern, int n
     return;
   }
   // multithread processing
-  vector<bool> v(n);
+  bool v[n];
 #ifdef USE_OMP
 #pragma omp parallel for num_threads(num_threads)
   for (size_t i = 0; i < n; i++)
@@ -337,7 +337,7 @@ class FastMatch : public trie {
       return;
     }
     // multithread processing
-    vector<int> v(n);
+    int v[n];
 #ifdef USE_OMP
 #pragma omp parallel for num_threads(num_threads)
     for (size_t i = 0; i < n; i++)
