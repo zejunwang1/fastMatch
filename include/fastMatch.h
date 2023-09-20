@@ -241,17 +241,13 @@ class FastMatch : public trie {
         ++count;
         res.push_back('\t');
         res.append(_key[result_pair[i].value]);
-        if (num_patterns >= 0 && count >= num_patterns) {
-          res.push_back('\n');
+        if (num_patterns >= 0 && count >= num_patterns)
           return res;
-        }
       }
       ++cur;
       while (cur < len && (str[cur] & 0xC0) == 0x80)
         ++cur;
     }
-    if (res.size())
-      res.push_back('\n');
     return res;
   }
   
@@ -269,17 +265,13 @@ class FastMatch : public trie {
         ++count;
         res.push_back('\t');
         res.append(_key[result_pair.value]);
-        if (num_patterns >= 0 && count >= num_patterns) {
-          res.push_back('\n');
+        if (num_patterns >= 0 && count >= num_patterns)
           return res;
-        }
       }
       ++cur;
       while (cur < len && (str[cur] & 0xC0) == 0x80)
         ++cur;
     }
-    if (res.size())
-      res.push_back('\n');
     return res;
   }
   
@@ -293,10 +285,10 @@ class FastMatch : public trie {
     size_t n = text.size();
     if (num_threads == 1) {
       for (size_t i = 0; i < n; i++) {
-        string str = fast ? parseSingleFast(text[i], num_patterns) :
-                            parseSingle(text[i], num_patterns);
+        string str = fast ? move(parseSingleFast(text[i], num_patterns)) :
+                            move(parseSingle(text[i], num_patterns));
         if (str.size())
-          cout << text[i] << str;
+          cout << text[i] << str << '\n';
       }
       return;
     }
@@ -305,19 +297,19 @@ class FastMatch : public trie {
 #ifdef USE_OMP
 #pragma omp parallel for num_threads(num_threads)
     for (size_t i = 0; i < n; i++)
-      v[i] = fast ? parseSingleFast(text[i], num_patterns) : 
-                    parseSingle(text[i], num_patterns);
+      v[i] = fast ? move(parseSingleFast(text[i], num_patterns)) :
+                    move(parseSingle(text[i], num_patterns));
 #else
     auto func = [&](size_t start, size_t end) {
       for (size_t i = start; i < end; i++)
-        v[i] = fast ? parseSingleFast(text[i], num_patterns) :
-                      parseSingle(text[i], num_patterns);
+        v[i] = fast ? move(parseSingleFast(text[i], num_patterns)) :
+                      move(parseSingle(text[i], num_patterns));
     };
     RunMultiThread(func, n, num_threads);
 #endif
     for (size_t i = 0; i < n; i++)
       if (v[i].size())
-        cout << text[i] << v[i];
+        cout << text[i] << v[i] << '\n';
   }
   
   void parseHit(const vector<string>& text, int num_threads = 0) const {
@@ -361,7 +353,7 @@ class FastMatch : public trie {
     trie::result_pair_type result_pair;
     const char* str = text.c_str();
     size_t num = 0, cur = 0, last = 0, len = text.size();
-    res.reserve(len / 4);
+    res.reserve(len >> 2);
     while (cur < len) {
       num = commonPrefixSearch(str + cur, len - cur, &result_pair, maxPrefixMatches);
       if (num) {
@@ -381,6 +373,36 @@ class FastMatch : public trie {
     }
     return res;
   }
+  
+  #if __cplusplus >= 201703L
+  vector<string_view> maxForwardMatchView(string_view text) const {
+    vector<string_view> res;
+    if (text.empty())
+      return res;
+    trie::result_pair_type result_pair;
+    const char* str = text.data();
+    size_t num = 0, cur = 0, last = 0, len = text.size();
+    res.reserve(len >> 2);
+    while (cur < len) {
+      num = commonPrefixSearch(str + cur, len - cur, &result_pair, maxPrefixMatches);
+      if (num) {
+        res.emplace_back(_key[result_pair.value]);
+        cur += result_pair.length;
+        continue;
+      }
+      last = cur;
+      while (cur < len && isascii(str[cur]) && !isspace(str[cur]))
+        ++cur;
+      if (last == cur) {
+        ++cur;
+        while (cur < len && (str[cur] & 0xC0) == 0x80)
+          ++cur;
+      }
+      res.emplace_back(text.substr(last, cur - last));
+    }
+    return res;
+  }
+  #endif
   
   string maxForwardMatchSingle(const string& text) const {
     string res;
@@ -431,11 +453,11 @@ class FastMatch : public trie {
 #ifdef USE_OMP
 #pragma omp parallel for num_threads(num_threads)
     for (size_t i = 0; i < n; i++)
-      v[i] = maxForwardMatchSingle(text[i]);
+      v[i] = move(maxForwardMatchSingle(text[i]));
 #else
     auto func = [&](size_t start, size_t end) {
       for (size_t i = start; i < end; i++)
-        v[i] = maxForwardMatchSingle(text[i]);
+        v[i] = move(maxForwardMatchSingle(text[i]));
     };
     RunMultiThread(func, n, num_threads);
 #endif
