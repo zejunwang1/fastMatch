@@ -35,6 +35,7 @@ PYBIND11_MODULE(fast_match, m) {
     .def("get_value", &FastMatch::getValue, py::arg("key"))
     .def("hit", &FastMatch::hit, py::arg("text"))
     .def("parse", &FastMatch::parseBind, py::arg("text"))
+    .def("parse2", &FastMatch::parseBind2, py::arg("text"))
     .def("max_forward_match", (SEG (FastMatch::*)(const string&) const)
         (&FastMatch::maxForwardMatch), py::arg("text"));
 }

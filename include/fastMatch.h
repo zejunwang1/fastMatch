@@ -78,6 +78,27 @@ inline int match(const string& text, const string& pattern) {
 }
 #endif
 
+inline vector<int> matchPos(const string& text, const string& pattern) {
+  vector<int> res;
+  if (text.empty() || pattern.empty())
+    return res;
+  auto n = pattern.length();
+#ifdef USE_STRING_FIND
+  auto pos = text.find(pattern);
+  while (pos != string::npos) {
+    res.emplace_back(pos);
+    pos = text.find(pattern, pos + n);
+  }
+#else
+  auto address = strstr(text.data(), pattern.data());
+  while (address != NULL) {
+    res.emplace_back(address - text.data());
+    address = strstr(address + n, pattern.data());
+  }
+#endif
+  return res;
+}
+
 inline void RunMultiThread(function<void(size_t, size_t)> func, size_t n, int num_threads) {
   vector<thread> threads;
   threads.reserve(static_cast<size_t>(num_threads));
@@ -122,6 +143,17 @@ inline void SingleMatch(const vector<string>& text, const string& pattern, int n
   for (size_t i = 0; i < n; ++i)
     if (v[i])
       cout << text[i] << '\n';
+}
+
+inline int charCount(const char* str, size_t len) {
+  size_t cur = 0, num = 0;
+  while (cur < len) {
+    ++num;
+    ++cur;
+    while (cur < len && (str[cur] & 0xC0) == 0x80)
+      ++cur;
+  }
+  return num;
 }
 
 class FastMatch : public trie {
@@ -215,12 +247,35 @@ class FastMatch : public trie {
       return res;
     trie::result_pair_type result_pair[maxPrefixMatches];
     const char* str = text.c_str();
-    size_t num = 0, cur = 0, index = 0, len = text.size();
+    size_t num = 0, cur = 0, idx = 0, len = text.size();
     while (cur < len) {
       num = commonPrefixSearch(str + cur, result_pair, maxPrefixMatches, len - cur);
       for (size_t i = 0; i < num; ++i)
-        res.emplace_back(_key[result_pair[i].value], index);
-      ++index;
+        res.emplace_back(_key[result_pair[i].value], idx);
+      ++idx;
+      ++cur;
+      while (cur < len && (str[cur] & 0xC0) == 0x80)
+        ++cur;
+    }
+    return res;
+  }
+
+  vector<pair<string, int>> parseBind2(const string& text) const {
+    vector<pair<string, int>> res;
+    if (text.empty())
+      return res;
+    trie::result_pair_type result_pair;
+    const char* str = text.c_str();
+    size_t num = 0, cur = 0, idx = 0, len = text.size();
+    while (cur < len) {
+      num = commonPrefixSearch(str + cur, len - cur, &result_pair, maxPrefixMatches);
+      if (num) {
+        res.emplace_back(_key[result_pair.value], idx);
+        idx += charCount(str + cur, result_pair.length);
+        cur += result_pair.length;
+        continue;
+      }
+      ++idx;
       ++cur;
       while (cur < len && (str[cur] & 0xC0) == 0x80)
         ++cur;
