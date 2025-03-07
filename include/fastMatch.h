@@ -259,6 +259,27 @@ class FastMatch : public trie {
     }
     return res;
   }
+  
+  vector<pair<string, int>> parse2(const string& text) const {
+    vector<pair<string, int>> res;
+    if (text.empty())
+      return res;
+    trie::result_pair_type result_pair;
+    const char* str = text.c_str();
+    size_t num = 0, cur = 0, len = text.size();
+    while (cur < len) {
+      num = commonPrefixSearch(str + cur, len - cur, &result_pair, maxPrefixMatches);
+      if (num) {
+        res.emplace_back(_key[result_pair.value], cur);
+        cur += result_pair.length;
+        continue;
+      }
+      ++cur;
+      while (cur < len && (str[cur] & 0xC0) == 0x80)
+        ++cur;
+    }
+    return res;
+  }
 
   vector<pair<string, int>> parseBind2(const string& text) const {
     vector<pair<string, int>> res;
